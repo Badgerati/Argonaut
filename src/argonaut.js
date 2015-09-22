@@ -3,6 +3,7 @@ var fs = require('fs');
 var isThere = require('is-there');
 var querystring = require('querystring');
 var https = require('https');
+var http = require('http');
 var parseXml = require('xml2js').parseString;
 var resolveJsonPath = require('object-resolve-path');
 var urlParser = require('url');
@@ -18,6 +19,16 @@ var output = (argv['o'] || false) && syncMode;
 
 if (!syncMode && (callbackUrl == null || callbackUrl == '')) {
     throw 'Asyncronous running requires a URL be supplied.'
+}
+
+//split up the callback URL
+var curl, callbackhost, callbackpath, callbackprotocol, callbackport;
+if (callbackUrl != null && callbackUrl != '') {
+    curl = urlParser.parse(callbackUrl);
+    callbackhost = curl.hostname;
+    callbackpath = curl.pathname;
+    callbackprotocol = curl.protocol.replace(':', '').toLowerCase();
+    callbackport = curl.port;
 }
 
 //check test file/directory exists
@@ -119,7 +130,8 @@ function doCall(url, method, responseType, test) {
     var purl = urlParser.parse(url);
     var host = purl.hostname;
     var path = purl.pathname;
-    var protocol = purl.protocol.replace(':', '');
+    var protocol = purl.protocol.replace(':', '').toLowerCase();
+    var port = purl.port;
 
     if (method == 'GET') {
         path += ('?' + querystring.stringify(parameters));
@@ -129,10 +141,11 @@ function doCall(url, method, responseType, test) {
         host: host,
         path: path,
         method: method,
-        port: (protocol == 'http' ? 80 : 443)
+        port: (port != null ? port : (protocol == 'http' ? 80 : 443))
     };
     
-    var req = https.request(options, function(res) {
+    var caller = protocol == 'http' ? http : https;
+    var req = caller.request(options, function(res) {
         res.setEncoding('utf8');
         var code = res.statusCode;
         var msg = '';
@@ -151,10 +164,7 @@ function doCall(url, method, responseType, test) {
 
 function verify(data, expected, responseType, httpcode, httpexpected, testname) {
     if (httpcode != httpexpected) {
-        if (output) {
-            log(testname, 'Incorrect HTTP Status Code\n  Expected\t' + httpexpected + '\n  But got\t' + httpcode);
-        }
-        
+        log(testname, 'Incorrect HTTP Status Code\n  Expected\t' + httpexpected + '\n  But got\t' + httpcode);
         return;
     }
     
@@ -169,10 +179,7 @@ function verify(data, expected, responseType, httpcode, httpexpected, testname) 
 function verifyXml(data, testname, expected) {
     parseXml(data, function(err, result) {
         if (err) {
-            if (output) {
-                log(testname, 'Invalid XML');
-            }
-            
+            log(testname, 'Invalid XML');
             return;
         }
         
@@ -181,10 +188,7 @@ function verifyXml(data, testname, expected) {
             var value = resolveJsonPath(result, key);
             
             if (value != expect[key]) {
-                if (output) {
-                    log(testname, 'Incorrect value for ' + key + '\n  Expected\t' + expect[key] + '\n  But got\t' + value);
-                }
-                
+                log(testname, 'Incorrect value for ' + key + '\n  Expected\t' + expect[key] + '\n  But got\t' + value);
                 return;
             }
         });
@@ -196,5 +200,20 @@ function verifyJson(data, testname, expected) {
 }
 
 function log(testname, msg) {
-    console.log('(' + testname + '):\n' + msg + '\n');
+    if (output) {
+        console.log('(' + testname + '):\n' + msg + '\n');
+    }
+    
+    if (callbackUrl != null && callbackUrl != '') {        
+        var options = {
+            host: callbackhost,
+            path: callbackpath + '?test=' + encodeURIComponent(testname) + '&response=' + encodeURIComponent(msg),
+            method: 'GET',
+            port: (callbackport != null ? callbackport : (callbackprotocol == 'http' ? 80 : 443))
+        };
+        
+        var caller = callbackprotocol == 'http' ? http : https;
+        var req = caller.request(options, function(res) { });
+        req.end();
+    }
 }
