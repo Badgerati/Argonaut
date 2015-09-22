@@ -1,0 +1,33 @@
+{
+  "name": "argonaut",
+  "version": "1.0.0",
+  "description": "node.js testing framework",
+  "main": "argonaut.js",
+  "scripts": {
+    "test": "node argonaut.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/badgerati/argonaut.git"
+  },
+  "keywords": [
+    "node",
+    "js",
+    "test"
+  ],
+  "dependencies": {
+    "is-there": "4.0.0",
+    "minimist": "1.2.0",
+    "querystring": "0.2.0",
+    "https": "1.0.0",
+    "xml2js": "0.4.12",
+    "object-resolve-path": "1.1.0",
+    "url": "0.11.0"
+  },
+  "author": "badgerati",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/badgerati/argonaut/issues"
+  },
+  "homepage": "https://github.com/badgerati/argonaut#readme"
+}
