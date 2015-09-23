@@ -1,8 +1,6 @@
 Argonaut
 ========
-Argonaut is a node.js testing framework for testing REST API responses. Tests are written within a JSON file, and fed into the node.js script. Argonaut can run either asynchronously or synchronously, with the open of outputting data direct to the console (synchronous only), or to a callback URL (mandatory for async).
-
-Argonaut is still in development, so will have missing features and be unstable.
+Argonaut is a node.js testing framework for testing REST API responses. Tests are written within a JSON file, and fed into the node.js script. Argonaut can run either asynchronously or synchronously, with the option of outputting data direct to the console (synchronous only), or to a callback URL (mandatory for async).
 
 
 Example JSON
