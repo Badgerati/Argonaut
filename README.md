@@ -52,6 +52,22 @@ Tests are written within JSON files, this lets you specify a global REST API URL
 
 ```
 
+As you may notice, the URL ends up being hardcoded in the JSON file. Hosts are not the same in every environment, therefore to override hosts within the JSON test files you can use a config.json file. The config JSON file can either be the default one located at the root of Argonaut, or a path to one can be specified using the -c tag.
+
+An example to override two hosts would be:
+
+```json
+{
+    "hosts": {
+        "sometest.url.com": "other.url.com",
+        "thistest.url.com": "thing.url.com"
+    }
+}
+```
+
+Now when Argonaut attempts to callout to 'sometest.url.com', this is replaced with 'other.url.com'. Making testing on other environments much easier.
+
+
 
 Example Call
 ============
@@ -85,4 +101,10 @@ When running in sync mode, output is surpressed by default, if you wish for outp
 
 ```shell
 node argonaut.js -o
+```
+
+To specify a config JSON file other than using the default one, you can use the -c tag:
+
+```shell
+node argonaut -c .\other_config.json
 ```
